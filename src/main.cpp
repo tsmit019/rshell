@@ -67,8 +67,12 @@ void make_tokens(string input, vector<string> &commands)
         tokenizer tokens (input, sep);
         
         for (tokenizer::iterator tok_iter = tokens.begin(); tok_iter != tokens.end(); ++tok_iter)
-        {   
-            commands.push_back(*tok_iter);
+        {
+             if(*tok_iter == "#")
+             {
+                break;
+             }   
+             commands.push_back(*tok_iter);
         }
         
         return;
