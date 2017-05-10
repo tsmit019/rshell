@@ -8,11 +8,11 @@ rudimentary if you look at the source. The shell itself will also handle comment
 starting with the `#` symbol.
 
 ## How to Run
-`$ git clone  https://github.com/yourusername/rshell.git
-$ cd rshell
-$ git checkout hw2
-$ make
-$ bin/rshell`
+`$ git clone  https://github.com/yourusername/rshell.git`
+`$ cd rshell`
+`$ git checkout hw2`
+`$ make`
+`$ bin/rshell`
 
 
 ## Bugs
