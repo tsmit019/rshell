@@ -1,4 +1,5 @@
 #include "single_command.h"
+#include <cstdlib>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -23,8 +24,8 @@ void Single::execute(int &status)
     }
     else
     {
-       execvp(command[0], command);
-       //exit with some failure;
+       status = execvp(command[0], command);
+       exit(-1);
     }
     
 }

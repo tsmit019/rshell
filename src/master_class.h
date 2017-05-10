@@ -8,10 +8,9 @@ using namespace std;
 class Master
 {
     public:
-        Master(vector<char*> commands) : cmds_n_args(commands) {}; 
+        Master() {}; 
         virtual void execute(int &status) = 0;
     protected:
-        vector <char*> cmds_n_args;
 };
 
 #endif
