@@ -5,10 +5,18 @@ A simple command shell designed by Trevor Smith and Chianh Wu.
 This shell currently will take one command with no delimiters, and execute
 that command. Similarly, it has a self contained exit command that is pretty
 rudimentary if you look at the source. The shell itself will also handle comments
-starting with the '#' symbol.
+starting with the `#` symbol.
+
+## How to Run
+`$ git clone  https://github.com/yourusername/rshell.git
+$ cd rshell
+$ git checkout hw2
+$ make
+$ bin/rshell`
+
 
 ## Bugs
-This program currently does not take delimiters (e.g. "&&"; "||"; ';').
+This program currently does not take delimiters (e.g. `&&`; `||`; `;`).
 
 If you type say `echo "hello world"` it will print `"hello world"` instead of just
 `hello world`.
