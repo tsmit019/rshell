@@ -8,11 +8,20 @@ rudimentary if you look at the source. The shell itself will also handle comment
 starting with the `#` symbol.
 
 ## How to Run
-- `$ git clone  https://github.com/tsmit019/rshell.git`
+- `$ git clone https://github.com/tsmit019/rshell.git`
 - `$ cd rshell`
 - `$ git checkout hw2`
 - `$ make`
 - `$ bin/rshell`
+
+## If you want to run test
+- `$ git clone https://github.com/tsmit019/rshell.git`
+- `$ cd rshell`
+- `$ git checkout hw2`
+- `$ make`
+- `$ cd tests`
+
+From here you can chose any of the `.sh` and run them. make sure they are executable by checking using `ls -l`. If its not executable, then type `chmod 711 *.sh` to make all the `.sh` files executable. 
 
 
 ## Bugs
