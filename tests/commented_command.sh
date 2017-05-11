@@ -11,5 +11,7 @@ ls -a #hello
 mkdir test1 #hello2
 rm -r test1 #hello3 && testing
 echo hello #world
+ls -la && echo hello #world
+echo hello; ls -l #this is a test
 exit
 EOF
