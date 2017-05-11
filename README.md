@@ -2,9 +2,8 @@
 A simple command shell designed by Trevor Smith and Chianh Wu.
 
 ## What it does (currently)
-This shell currently will take one command with no delimiters, and execute
-that command. Similarly, it has a self contained exit command that is pretty
-rudimentary if you look at the source. The shell itself will also handle comments
+This shell currently will take one command, or a series of commands seperated by `&&`, `\\`, `;`. It will execute these commands from left to right.Similarly, 
+it has a self contained exit command that is pretty rudimentary if you look at the source. The shell itself will also handle comments
 starting with the `#` symbol.
 
 ## How to Run
