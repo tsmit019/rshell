@@ -25,7 +25,7 @@ From here you can chose any of the `.sh` and run them. Make sure they are execut
 
 
 ## Bugs
-This program currently does not take delimiters (e.g. `&&`; `||`; `;`).
+This program currently does not take delimiters (e.g. `&&`, `||`, `;`).
 
 If you type say `echo "hello world"` it will print `"hello world"` instead of just
 `hello world`.
