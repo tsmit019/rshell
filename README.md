@@ -25,7 +25,9 @@ From here you can chose any of the `.sh` and run them. Make sure they are execut
 
 
 ## Bugs
-This program currently does not take delimiters (e.g. `&&`, `||`, `;`).
+If you have something like `ls -la || echo hello && ls -a` then it will run `ls -la` then not run `echo hello`, but in bash it will run the `ls -a` but in our shell it will not run.
+
+Executing a command like `echo hello || ls -a; mkdir test` would sometimes just output the first command twice (possibly fixed).
 
 If you type say `echo "hello world"` it will print `"hello world"` instead of just
 `hello world`.
