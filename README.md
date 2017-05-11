@@ -29,7 +29,7 @@ If you have something like `ls -la || echo hello && ls -a` then it will run `ls 
 
 Executing a command like `echo hello || ls -a; mkdir test` would sometimes just output the first command twice (possibly fixed).
 
-If you type say `echo "hello world"` it will print `"hello world"` instead of just
+Say you type say `echo "hello world"` it will print `"hello world"` instead of just
 `hello world`.
 
 If you type an invalid command say `ech "hello world"` and then try to `exit` after
