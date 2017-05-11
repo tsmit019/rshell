@@ -21,7 +21,7 @@ starting with the `#` symbol.
 - `$ make`
 - `$ cd tests`
 
-From here you can chose any of the `.sh` and run them. make sure they are executable by checking using `ls -l`. If its not executable, then type `chmod 711 *.sh` to make all the `.sh` files executable. 
+From here you can chose any of the `.sh` and run them. Make sure they are executable by checking using `ls -l`. If they are not executable, then type `chmod 711 *.sh` to make all the `.sh` files executable. 
 
 
 ## Bugs
