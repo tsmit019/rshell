@@ -1,4 +1,5 @@
 #include "single_command.h"
+#include "master_class.h"
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/types.h>
@@ -15,17 +16,18 @@ void Single::execute(int &status)
     
     if(pid == -1)
     {
-        perror("The following error occured");
+        perror("Error");
         return;
     }
     else if (pid > 0)
     {
         waitpid(pid, &status, 0);
+        //perror("Error");  this is ways return "sucess" full is it is
     }
     else
     {
        status = execvp(command[0], command);
-       exit(-1);
+       perror("Error");
     }
-    
 }
+

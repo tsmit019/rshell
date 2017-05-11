@@ -8,6 +8,7 @@ class Or : public Connector
 {
     public:
         Or(vector<char*> left, vector<char*> right) : Connector(left, right) {};
+        ~Or() {};
         void execute(int &status);
 };
 

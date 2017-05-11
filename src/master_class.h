@@ -9,6 +9,7 @@ class Master
 {
     public:
         Master() {}; 
+        virtual ~Master() {};
         virtual void execute(int &status) = 0;
     protected:
 };

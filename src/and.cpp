@@ -1,4 +1,5 @@
 #include "and.h"
+#include "master_class.h"
 #include "single_command.h"
 
 void And::execute(int &status)
@@ -17,3 +18,4 @@ void And::execute(int &status)
    
    delete[] left_junk;
 }
+

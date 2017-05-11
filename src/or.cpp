@@ -1,4 +1,5 @@
 #include "or.h"
+#include "master_class.h"
 #include "single_command.h"
 
 void Or::execute(int &status)
@@ -16,3 +17,4 @@ void Or::execute(int &status)
    
    delete[] left_junk;
 }
+

@@ -9,10 +9,10 @@ class Connector : public Master
     protected:
     vector<char*> left;
     vector<char*> right;
-    //int status;
     
     public:
     Connector(vector<char*> left, vector<char*> right);
+    ~Connector() {};
     virtual void execute(int &status) = 0;
 };
 
