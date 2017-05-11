@@ -13,9 +13,7 @@
 #include <boost/tokenizer.hpp>
 #include "master_class.h"
 #include "single_command.h"
-#include "connector.h"
-#include "and.h"
-#include "or.h"
+
 
 //ls -a; echo hello && mkdir test || echo world; git status
 
@@ -36,7 +34,7 @@ int main() {
     int status;
     bool dont_exit = 1;
     
-    while (dont_exit) 
+    while (dont_exit) //will always print the '$' character.
     {
         cout << "$ ";
         getline(cin, input);
@@ -50,29 +48,20 @@ int main() {
         vector <char*> connectors;
         unsigned x = 0;
          
-        parse(char_cmds, command_list, connectors);    //this parses the input so multiple 
+        parse(char_cmds, command_list, connectors);     //this parses the input so multiple 
                                                         //commands can be executed
-        execute_order_66(command_list, connectors, dont_exit, status, x);
+        execute_order_66(command_list, connectors, dont_exit, status, x); //commands are executed here.
+        //command_list is the vector of commands in the input
+        //connectors is the vector of connectors in the input
+        //dont_exit is the trigger that will tell the program to leave.
+        //int status is the status of the command which will determine if the command ran successfully.
+        //x was initally used as a counter, currently serves no purpose as a parameter.
         
         for (unsigned x = 0; x < char_cmds.size(); x++)
         {
             delete [] char_cmds[x];
             
         }
-        
-        // for (unsigned q = 0; q < connectors.size(); q++)
-        // {
-        //     delete [] connectors[q];
-            
-        // }
-        
-        // for(unsigned r = 0; r < command_list.size(); r++)
-        // {
-        //     for(unsigned s = 0; s < command_list.at(r).size(); s++)
-        //     {
-        //         delete [] command_list.at(r)[s];
-        //     }
-        // }
         
         if(!dont_exit)
         {
@@ -105,18 +94,19 @@ void make_tokens (string input, vector<string> &commands)
 }
 
 void string_to_charpt(const vector <string> &commands, vector <char*> &char_cmds)
+//converts vector of string into a vector of character pointers.
 {
     
     for (unsigned i = 0; i < commands.size(); i++)
     {
         string temp = commands.at(i);
-        char *cstr = new char[temp.length() + 1];
-        strcpy(cstr, temp.c_str());
+        char *cstr = new char[temp.length() + 1];             //allocates new memory so we can have of char*
+        strcpy(cstr, temp.c_str());                           //makes a copy as a c_string
         
         char_cmds.push_back(cstr);
     }
     
-    char_cmds.push_back(NULL);
+    char_cmds.push_back(NULL);                                //makes sure the c_string is null terminated
         
     return;
 }
@@ -133,8 +123,7 @@ void parse (const vector <char*> &char_commands,
         
         if (strcmp(temp, "&&") == 0 )        //checks for a && so it can start a new vector 
         {
-            //cout << "you we got a fresh &&" << endl;
-            temp_vector.push_back(NULL);
+            temp_vector.push_back(NULL);     //makes sure the end of the c_string is null
             command_list.push_back(temp_vector);
             temp_vector.clear();
             connectors.push_back(temp);
@@ -142,8 +131,7 @@ void parse (const vector <char*> &char_commands,
         }
         else if (strcmp(temp, "||") == 0 )    //checks for a || so it can start a new vector
         {
-            //cout << "you we got a fresh ||" << endl;
-            temp_vector.push_back(NULL);
+            temp_vector.push_back(NULL);      //makes sure the end of the c_string is null
             command_list.push_back(temp_vector);
             temp_vector.clear();
             connectors.push_back(temp);
@@ -151,21 +139,20 @@ void parse (const vector <char*> &char_commands,
         }
         else if (strcmp(temp, ";") == 0 )     //checks for a ; so it can start a new vector
         {
-            //cout << "you we got a fresh ;" << endl;
-            temp_vector.push_back(NULL);
+            temp_vector.push_back(NULL);      //makes sure the end of the c_string is null
             command_list.push_back(temp_vector);
             temp_vector.clear();
             connectors.push_back(temp);
             i++;
         }
-            //cout << char_commands.at(i) << endl;
             temp_vector.push_back( char_commands.at(i) );
         
         i++;
     }
     
-    temp_vector.push_back(NULL);
-    command_list.push_back(temp_vector);
+    temp_vector.push_back(NULL);              //when no delimiter is found still null terminates
+    command_list.push_back(temp_vector);      //pushes the vector with the command onto the list of...
+                                              //commands
     
 }
 
@@ -173,15 +160,15 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
     bool &yo_we_exit, int &status, unsigned &x)
 {
     int connectorsCount = connectors.size();
+    int commandCount = command_list.size();
     if(status == -1)
     {
         yo_we_exit = 0;
         return;
     }
     
-    if(connectors.size() == 0)
+    if(connectors.size() == 0) //checks if the input is a single command.
     {
-        //cout << command_list.at(0).at(0) << endl;
         
         
         if(strcmp(command_list.at(0).at(0), "exit") == 0) {
@@ -195,8 +182,7 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
         delete single_it_out;
     }
     
-   // int x = 0;
-    bool lastRun = false;
+    bool lastRun = false; //Checks if the last program ran.
     int start = 0;
     for(unsigned i = 0; i < connectors.size(); i++)
     {
@@ -204,6 +190,7 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
           yo_we_exit = 0;
           return;
       }
+     
         if (status == -1)
         {
             yo_we_exit = 0;
@@ -212,11 +199,11 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
         
         char* current_connector = connectors.at(i);
         
-        if(strcmp(current_connector, "&&") == 0)
+        if(strcmp(current_connector, "&&") == 0) //checks if the current connector being processed is AND.
         {
             if (lastRun == true || start == 0) 
             {
-                if(strcmp(command_list.at(x).at(0), "exit") == 0) 
+                if(strcmp(command_list.at(x).at(0), "exit") == 0) //exits if the command is 'exit'
                 {
                    yo_we_exit = 0;
                   return;
@@ -226,7 +213,7 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
             cmd1->execute(status);
             delete cmd1;
             start++;
-            if (status != -1) 
+            if (status != -1) //if the first command ran successfully, run the next one.
             {
                 lastRun = true;
                 x++;
@@ -247,8 +234,10 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
             }
             }
             connectorsCount--;
+            commandCount--;
+            commandCount--;
         }
-        else if(strcmp(current_connector, "||") == 0)
+        else if(strcmp(current_connector, "||") == 0)//checks if the current connector being processed is OR.
         {
             if (lastRun == false || start == 0) 
             {
@@ -269,9 +258,9 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
                       x++;
                     if(strcmp(command_list.at(x).at(0), "exit") == 0) 
                     {
-                   yo_we_exit = 0;
-                return;
-                   } 
+                        yo_we_exit = 0;
+                        return;
+                    } 
             
              Single *cmd2 = new Single(command_list.at(x));
              cmd2->execute(status);
@@ -282,21 +271,78 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
             else
             {
                 lastRun = false;
+                x++;
+                x++;
             }
         
             }
             connectorsCount--;
+            commandCount--;
+            commandCount--;
         }
-        else if(strcmp(current_connector, ";") == 0)
+        else if(strcmp(current_connector, ";") == 0) //checks if the current connector being processed is ';'.
         {
-            cout << "Found semicolon:" << endl;
+            if (command_list.size() == 2) { //checks if it is 2 consecutive commands.
+            
+                if(strcmp(command_list.at(0).at(0), "exit") == 0) 
+                {
+                    yo_we_exit = 0;
+                    return;
+                }
+    
+                Single *cmdfirst = new Single(command_list.at(0));
+                cmdfirst->execute(status);
+                delete cmdfirst;
+               
+                
+                if(strcmp(command_list.at(1).at(0), "exit") == 0) 
+                {
+                    yo_we_exit = 0;
+                    return;
+                }
+                
+                Single *cmdsecond = new Single(command_list.at(1));
+                cmdsecond->execute(status);
+                delete cmdsecond;
+                return;
+            }
             connectorsCount--;
-            cout << "Connectors remaining: " << connectorsCount << endl;
            lastRun = false;
-           start = 0;
-           if (connectorsCount == 0) {
-            Single *single_it_out = new Single(command_list.at(x));
-            single_it_out->execute(status);
+           if (i != connectors.size()-1) { //nothing happens if there are more connectors to be processed unless..
+
+               
+                bool is_semi = 0;
+                if(strcmp(connectors.at(i + 1), ";") == 0)
+                {
+                    is_semi = 1;
+                }
+                if (is_semi) { //if the next command is a 'single command' before a semicolon.
+                   
+                    if(strcmp(command_list.at(x).at(0), "exit") == 0) 
+                    {
+                        yo_we_exit = 0;
+                        return;
+                    }
+                    
+                    Single *cmd3 = new Single(command_list.at(x)); //runs the single command.
+                    cmd3->execute(status);
+                    x++;
+                    delete cmd3;
+                    connectorsCount--;
+                }
+           }
+           if (connectorsCount==0) { //if the input is a series of commands separated by semicolons.
+             
+               if(strcmp(command_list.at(x).at(0), "exit") == 0) 
+                {
+                    yo_we_exit = 0;
+                    return;
+                }
+               
+               Single *cmd4 = new Single(command_list.at(x));
+               cmd4->execute(status);
+               x++;
+               delete cmd4;
            }
             
             
@@ -306,3 +352,4 @@ void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &co
          
     
 }
+
