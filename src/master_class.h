@@ -1,17 +1,18 @@
-#ifndef __MASTER_H__
-#define __MASTER_H__
+#ifndef __RSHELL_H__
+#define __RSHELL_H__
 
-#include <vector>
-#include <iostream>
-using namespace std;
-
-class Master
+class Rshell
 {
+    private:
+    
     public:
-        Master() {}; 
-        virtual ~Master() {};
-        virtual void execute(int &status) = 0;
-    protected:
+    
+    Rshell() {};
+    virtual ~Rshell() {};                            
+    virtual void execute(int &status, bool &exit_now) = 0;            //used to execute the various commands; 
+                                                                      //uses status to see if it worked or not
+                                             
+                                                                      //may need to add more as the project progresses.
 };
 
 #endif
