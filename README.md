@@ -26,4 +26,9 @@ From here you can chose any of the `.sh` and run them. Make sure they are execut
 
 
 ## Bugs
+If you give a command that is parenthese, connector, then command (e.g. `(echo a && echo b) || echo c`) you get a out of range error that I was 
+not able to resolve. Similarly, any connector directly after a closing parenthese will cause this behavior and I am unsure why. I will try and fix 
+this by the next release. 
+
+Similarly, commands with connectors right after each other will through a similar out of range error. E.g `echo a && ||` will give you out of range.
 
