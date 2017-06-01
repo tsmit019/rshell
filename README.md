@@ -18,7 +18,7 @@ note also that this is white space sensetive `[-e /home/user/]` will not work.
 ## If you want to run test
 - `$ git clone https://github.com/tsmit019/rshell.git`
 - `$ cd rshell`
-- `$ git checkout hw2`
+- `$ git checkout hw3`
 - `$ make`
 - `$ cd tests`
 
