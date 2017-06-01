@@ -12,64 +12,46 @@
 #include <sys/wait.h>
 #include <boost/tokenizer.hpp>
 #include "master_class.h"
-#include "single_command.h"
-
-
-//ls -a; echo hello && mkdir test || echo world; git status
-
-void make_tokens(string input, vector<string> &commands);
-
-void string_to_charpt(const vector <string> &commands, vector <char*> &char_cmds);
-
-void parse(const vector <char*> &char_commands, 
-    vector <vector <char*> > &command_list, vector <char*> &connectors);    //parses into seperate commands
-    
-void execute_order_66(vector <vector <char*> > &command_list,
-    vector <char*> &connectors, bool &yo_we_exit, int &status, unsigned &x);               //executes the commands
+#include "command.h"
+#include "connectors.h"
 
 using namespace std;
-int main() {
 
+void make_tokens (string input, vector<string> &commands);
+void parse (const vector <string> &input, vector<Rshell*> &treed_commands);
+bool even_parentheses(const vector <string> input_tokens);
+
+int main()
+{
+    bool exit_now = 0;
     string input;
-    int status;
-    bool dont_exit = 1;
+    int status = 0;
     
-    while (dont_exit) //will always print the '$' character.
+    while(!exit_now)
     {
         cout << "$ ";
+        
         getline(cin, input);
-
-        vector<string> cmds;
-        make_tokens(input, cmds);
-        vector<char*> char_cmds;
-        string_to_charpt(cmds, char_cmds);              //this converts vector<string> to vector<char*>
+        vector<string> commands;
+        vector<Rshell*> exe_commands;
         
-        vector <vector <char*> > command_list;
-        vector <char*> connectors;
-        unsigned x = 0;
-         
-        parse(char_cmds, command_list, connectors);     //this parses the input so multiple 
-                                                        //commands can be executed
-        execute_order_66(command_list, connectors, dont_exit, status, x); //commands are executed here.
-        //command_list is the vector of commands in the input
-        //connectors is the vector of connectors in the input
-        //dont_exit is the trigger that will tell the program to leave.
-        //int status is the status of the command which will determine if the command ran successfully.
-        //x was initally used as a counter, currently serves no purpose as a parameter.
+        make_tokens(input, commands);
         
-        for (unsigned x = 0; x < char_cmds.size(); x++)
-        {
-            delete [] char_cmds[x];
-            
+        if(!even_parentheses(commands))                         //if there is an uneven number of parentheses
+        {                                                       //throw an error and try again
+            cout << "Error: uneven number of opening and closing parentheses" << endl;
         }
-        
-        if(!dont_exit)
+        else                                                    //if even or no parentheses execute the command(s)
         {
-            break;
+            parse(commands,exe_commands);
+            
+            exe_commands.at(exe_commands.size() - 1) -> execute(status, exit_now);
+            status = 0;
+            
+            delete exe_commands.at(exe_commands.size() - 1);
+            exe_commands.clear();
         }
     }
-    
-    return 0;
 }
 
 void make_tokens (string input, vector<string> &commands)
@@ -77,7 +59,7 @@ void make_tokens (string input, vector<string> &commands)
         typedef boost::tokenizer<boost::char_separator<char> >     //this is taken from boost docs
         tokenizer;
         
-        boost::char_separator<char> sep(" ", ";#");
+        boost::char_separator<char> sep(" ", ";#()");
         tokenizer tokens (input, sep);
         
         for (tokenizer::iterator tok_iter = tokens.begin(); tok_iter != tokens.end(); ++tok_iter)
@@ -93,263 +75,198 @@ void make_tokens (string input, vector<string> &commands)
         return;
 }
 
-void string_to_charpt(const vector <string> &commands, vector <char*> &char_cmds)
-//converts vector of string into a vector of character pointers.
+void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
 {
+    // think about replacing Command* vector and instead use Rshell* vector and adjust from there.
     
-    for (unsigned i = 0; i < commands.size(); i++)
-    {
-        string temp = commands.at(i);
-        char *cstr = new char[temp.length() + 1];             //allocates new memory so we can have of char*
-        strcpy(cstr, temp.c_str());                           //makes a copy as a c_string
-        
-        char_cmds.push_back(cstr);
-    }
     
-    char_cmds.push_back(NULL);                                //makes sure the c_string is null terminated
-        
-    return;
-}
-
-void parse (const vector <char*> &char_commands, 
-    vector <vector <char*> > &command_list, vector <char*> &connectors)
-{
-    int i = 0;
-    vector <char*> temp_vector;
+    vector <string> connectors;
+    vector <Rshell*> temp_objects;
+    vector <string> temp_vector;
+    string temp;
+    unsigned i = 0;
     
-    while (char_commands.at(i) != NULL)
-    {
-        char* temp = char_commands.at(i);
+    while(i < input.size())                                  //takes all of the stings and makes them in to Command objects
+    {                                                        // takes all the connectors and puts them into a vector of strings to be converted into a tree later
+        temp = input.at(i);
         
-        if (strcmp(temp, "&&") == 0 )        //checks for a && so it can start a new vector 
+        if(temp == "&&")                                     //checks for a && so it can start a new vector 
         {
-            temp_vector.push_back(NULL);     //makes sure the end of the c_string is null
-            command_list.push_back(temp_vector);
-            temp_vector.clear();
             connectors.push_back(temp);
-            i++;
+            Command* new_command = new Command(temp_vector);
+            temp_objects.push_back(new_command);
+            temp_vector.clear();   
         }
-        else if (strcmp(temp, "||") == 0 )    //checks for a || so it can start a new vector
+        else if(temp == "||")                                //checks for a || so it can start a new vector
         {
-            temp_vector.push_back(NULL);      //makes sure the end of the c_string is null
-            command_list.push_back(temp_vector);
-            temp_vector.clear();
             connectors.push_back(temp);
-            i++;
+            Command* new_command = new Command(temp_vector);
+            temp_objects.push_back(new_command);
+            temp_vector.clear();
         }
-        else if (strcmp(temp, ";") == 0 )     //checks for a ; so it can start a new vector
+        else if(temp == ";")                                //checks for a ; so it can start a new vector
         {
-            temp_vector.push_back(NULL);      //makes sure the end of the c_string is null
-            command_list.push_back(temp_vector);
-            temp_vector.clear();
             connectors.push_back(temp);
-            i++;
+            Command* new_command = new Command(temp_vector);
+            temp_objects.push_back(new_command);
+            temp_vector.clear();
         }
-            temp_vector.push_back( char_commands.at(i) );
+        else if(temp == "(")
+        {
+            int par_count = 1;
+            unsigned q = i;
+            q++;
+            vector <string> temp_vec;
+            
+            while(par_count != 0)
+            {
+                if(input.at(q) == "(")
+                {
+                    temp_vec.push_back(input.at(q));
+                    par_count++;
+                }
+                else if(input.at(q) == ")")
+                {
+                    par_count--;
+                    if(par_count != 0)
+                    {
+                        temp_vec.push_back(input.at(q));
+                    }
+                }
+                else
+                {
+                    temp_vec.push_back(input.at(q));
+                }
+                
+                q++;
+            }
+            parse(temp_vec, treed_commands);
+            //cout << q << endl;
+            if(q < input.size() && (input.at(q) == "&&" || input.at(q) == "||" || input.at(q) == ";"))
+            {
+                connectors.push_back(input.at(q)); 
+            }
+            i = q;
+        }
+        else
+        {
+            //cout << "pushed on" << endl;
+            temp_vector.push_back(temp);
+        }
         
         i++;
+        
+        if(i == input.size())
+        {
+            //cout << "new object" << endl;
+            Command* new_command = new Command(temp_vector);
+            temp_objects.push_back(new_command);
+            temp_vector.clear();
+        }
     }
     
-    temp_vector.push_back(NULL);              //when no delimiter is found still null terminates
-    command_list.push_back(temp_vector);      //pushes the vector with the command onto the list of...
-                                              //commands
+    //------------------------------------------------
+    // this is when we make the objects into a tree?
+    //------------------------------------------------
     
-}
+    if(connectors.size() == 0)                        // if there is no connectors then there is only one Rshell object
+    {                                                 // execute that sucker
+        if(temp_objects.size() != 0)
+        {
+            treed_commands.push_back(temp_objects.at(temp_objects.size() - 1));
+        }
 
-void execute_order_66(vector <vector <char*> > &command_list, vector <char*> &connectors, 
-    bool &yo_we_exit, int &status, unsigned &x)
-{
-    int connectorsCount = connectors.size();
-    int commandCount = command_list.size();
-    if(status == -1)
-    {
-        yo_we_exit = 0;
         return;
     }
     
-    if(connectors.size() == 0) //checks if the input is a single command.
+    //cout << "here" << endl;
+    
+    if(temp_objects.size() == 0)
     {
-        
-        
-        if(strcmp(command_list.at(0).at(0), "exit") == 0) {
-            yo_we_exit = 0;
-            return;
+        for(unsigned r = 0; r < treed_commands.size(); r++)
+        {
+            temp_objects.push_back(treed_commands.at(r));
         }
-        
-        Single *single_it_out = new Single(command_list.at(0));
-        single_it_out->execute(status);
-        
-        delete single_it_out;
+    }
+    // special case for first connector, because it should get the 1st two Rshell objects
+    // the following should get the first Rshell object and the last
+    
+    //cout << connectors.size() << endl;
+    
+    if(connectors.at(0) == "&&")
+    {
+        And* new_and = new And(temp_objects.at(0), temp_objects.at(1));
+        temp_objects.erase(temp_objects.begin());
+        temp_objects.erase(temp_objects.begin());
+        connectors.erase(connectors.begin());
+        temp_objects.push_back(new_and);
+    }
+    else if(connectors.at(0) == "||")
+    {
+        Or* new_or = new Or(temp_objects.at(0), temp_objects.at(1));
+        temp_objects.erase(temp_objects.begin());
+        temp_objects.erase(temp_objects.begin());
+        connectors.erase(connectors.begin());
+        temp_objects.push_back(new_or);
+    }
+    else if(connectors.at(0) == ";")
+    {
+        Semicolon* new_semi = new Semicolon(temp_objects.at(0), temp_objects.at(1));
+        temp_objects.erase(temp_objects.begin());
+        temp_objects.erase(temp_objects.begin());
+        connectors.erase(connectors.begin());
+        temp_objects.push_back(new_semi);
     }
     
-    bool lastRun = false; //Checks if the last program ran.
-    int start = 0;
-    for(unsigned i = 0; i < connectors.size(); i++)
-    {
-      if (x > command_list.size()) {
-          yo_we_exit = 0;
-          return;
-      }
-     
-        if (status == -1)
+    while(!connectors.empty())                                         //makes commands out of the connectors and the
+    {                                                                  //Rshell objects specifically first and last
+        int j = temp_objects.size() - 1;
+        
+        if(connectors.at(0) == "&&")
         {
-            yo_we_exit = 0;
-            return;
+            And* new_and = new And(temp_objects.at(j), temp_objects.at(0));
+            temp_objects.push_back(new_and);
+        }
+        else if(connectors.at(0) == "||")
+        {
+            Or* new_or = new Or(temp_objects.at(j), temp_objects.at(0));
+            temp_objects.push_back(new_or);
+        }
+        else if(connectors.at(0) == ";")
+        {
+            Semicolon* new_semi = new Semicolon(temp_objects.at(j), temp_objects.at(0));
+            temp_objects.push_back(new_semi);
         }
         
-        char* current_connector = connectors.at(i);
-        
-        if(strcmp(current_connector, "&&") == 0) //checks if the current connector being processed is AND.
-        {
-            if (lastRun == true || start == 0) 
-            {
-                if(strcmp(command_list.at(x).at(0), "exit") == 0) //exits if the command is 'exit'
-                {
-                   yo_we_exit = 0;
-                  return;
-                }
-                
-            Single *cmd1 = new Single(command_list.at(x));
-            cmd1->execute(status);
-            delete cmd1;
-            start++;
-            if (status != -1) //if the first command ran successfully, run the next one.
-            {
-                lastRun = true;
-                x++;
-                
-                if(strcmp(command_list.at(x).at(0), "exit") == 0) 
-                {
-                    yo_we_exit = 0;
-                    return;
-                }
-                Single *cmd2 = new Single(command_list.at(x));
-                cmd2->execute(status);
-                delete cmd2;
-                x++;
-            }
-            else 
-            {
-                lastRun = false;
-            }
-            }
-            connectorsCount--;
-            commandCount--;
-            commandCount--;
-        }
-        else if(strcmp(current_connector, "||") == 0)//checks if the current connector being processed is OR.
-        {
-            if (lastRun == false || start == 0) 
-            {
-                lastRun = true;
-                start++;
-                
-                if(strcmp(command_list.at(x).at(0), "exit") == 0) 
-                {
-                yo_we_exit = 0;
-                return;
-                }
-                
-                  Single *cmd1 = new Single (command_list.at(x));
-                  cmd1->execute(status);
-                  delete cmd1;
-                  if (status == -1) 
-                  {
-                      x++;
-                    if(strcmp(command_list.at(x).at(0), "exit") == 0) 
-                    {
-                        yo_we_exit = 0;
-                        return;
-                    } 
-            
-             Single *cmd2 = new Single(command_list.at(x));
-             cmd2->execute(status);
-             x++;
-             delete cmd2;
-                  }
-        
-            else
-            {
-                lastRun = false;
-                x++;
-                x++;
-            }
-        
-            }
-            connectorsCount--;
-            commandCount--;
-            commandCount--;
-        }
-        else if(strcmp(current_connector, ";") == 0) //checks if the current connector being processed is ';'.
-        {
-            if (command_list.size() == 2) { //checks if it is 2 consecutive commands.
-            
-                if(strcmp(command_list.at(0).at(0), "exit") == 0) 
-                {
-                    yo_we_exit = 0;
-                    return;
-                }
-    
-                Single *cmdfirst = new Single(command_list.at(0));
-                cmdfirst->execute(status);
-                delete cmdfirst;
-               
-                
-                if(strcmp(command_list.at(1).at(0), "exit") == 0) 
-                {
-                    yo_we_exit = 0;
-                    return;
-                }
-                
-                Single *cmdsecond = new Single(command_list.at(1));
-                cmdsecond->execute(status);
-                delete cmdsecond;
-                return;
-            }
-            connectorsCount--;
-           lastRun = false;
-           if (i != connectors.size()-1) { //nothing happens if there are more connectors to be processed unless..
-
-               
-                bool is_semi = 0;
-                if(strcmp(connectors.at(i + 1), ";") == 0)
-                {
-                    is_semi = 1;
-                }
-                if (is_semi) { //if the next command is a 'single command' before a semicolon.
-                   
-                    if(strcmp(command_list.at(x).at(0), "exit") == 0) 
-                    {
-                        yo_we_exit = 0;
-                        return;
-                    }
-                    
-                    Single *cmd3 = new Single(command_list.at(x)); //runs the single command.
-                    cmd3->execute(status);
-                    x++;
-                    delete cmd3;
-                    connectorsCount--;
-                }
-           }
-           if (connectorsCount==0) { //if the input is a series of commands separated by semicolons.
-             
-               if(strcmp(command_list.at(x).at(0), "exit") == 0) 
-                {
-                    yo_we_exit = 0;
-                    return;
-                }
-               
-               Single *cmd4 = new Single(command_list.at(x));
-               cmd4->execute(status);
-               x++;
-               delete cmd4;
-           }
-            
-            
-        }
-        
+        temp_objects.erase(temp_objects.begin());
+        connectors.erase(connectors.begin());
     }
-         
     
+    treed_commands.push_back(temp_objects.at(temp_objects.size() - 1)); //adding your final product back onto the tree
 }
 
+bool even_parentheses(const vector <string> input_tokens)
+{
+    //this function essentially just checks is there is an even number of parantheses
+    //thats is
+    int left_paren = 0, right_paren = 0;
+    
+    for(unsigned i = 0; i < input_tokens.size(); i++)
+    {
+        if(input_tokens.at(i) == "(")
+        {
+            left_paren++;
+        }
+        else if(input_tokens.at(i) == ")")
+        {
+            right_paren++;
+        }
+    }
+    
+    if(left_paren == right_paren)
+    {
+        return true;
+    }
+    
+    return false;
+}
