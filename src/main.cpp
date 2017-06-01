@@ -19,6 +19,7 @@ using namespace std;
 
 void make_tokens (string input, vector<string> &commands);
 void parse (const vector <string> &input, vector<Rshell*> &treed_commands);
+bool even_parentheses(const vector <string> input_tokens);
 
 int main()
 {
@@ -35,14 +36,21 @@ int main()
         vector<Rshell*> exe_commands;
         
         make_tokens(input, commands);
-        parse(commands,exe_commands);
         
-        exe_commands.at(exe_commands.size() - 1) -> execute(status, exit_now);
-        status = 0;
-        
-        delete exe_commands.at(exe_commands.size() - 1);
-
-        exe_commands.clear();
+        if(!even_parentheses(commands))                         //if there is an uneven number of parentheses
+        {                                                       //throw an error and try again
+            cout << "Error: uneven number of opening and closing parentheses" << endl;
+        }
+        else                                                    //if even or no parentheses execute the command(s)
+        {
+            parse(commands,exe_commands);
+            
+            exe_commands.at(exe_commands.size() - 1) -> execute(status, exit_now);
+            status = 0;
+            
+            delete exe_commands.at(exe_commands.size() - 1);
+            exe_commands.clear();
+        }
     }
 }
 
@@ -51,7 +59,7 @@ void make_tokens (string input, vector<string> &commands)
         typedef boost::tokenizer<boost::char_separator<char> >     //this is taken from boost docs
         tokenizer;
         
-        boost::char_separator<char> sep(" ", ";#");
+        boost::char_separator<char> sep(" ", ";#()");
         tokenizer tokens (input, sep);
         
         for (tokenizer::iterator tok_iter = tokens.begin(); tok_iter != tokens.end(); ++tok_iter)
@@ -73,6 +81,7 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
     
     
     vector <string> connectors;
+    vector <Rshell*> temp_objects;
     vector <string> temp_vector;
     string temp;
     unsigned i = 0;
@@ -85,25 +94,63 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
         {
             connectors.push_back(temp);
             Command* new_command = new Command(temp_vector);
-            treed_commands.push_back(new_command);
+            temp_objects.push_back(new_command);
             temp_vector.clear();   
         }
         else if(temp == "||")                                //checks for a || so it can start a new vector
         {
             connectors.push_back(temp);
             Command* new_command = new Command(temp_vector);
-            treed_commands.push_back(new_command);
+            temp_objects.push_back(new_command);
             temp_vector.clear();
         }
-        else if (temp == ";")                                //checks for a ; so it can start a new vector
+        else if(temp == ";")                                //checks for a ; so it can start a new vector
         {
             connectors.push_back(temp);
             Command* new_command = new Command(temp_vector);
-            treed_commands.push_back(new_command);
+            temp_objects.push_back(new_command);
             temp_vector.clear();
+        }
+        else if(temp == "(")
+        {
+            int par_count = 1;
+            unsigned q = i;
+            q++;
+            vector <string> temp_vec;
+            
+            while(par_count != 0)
+            {
+                if(input.at(q) == "(")
+                {
+                    temp_vec.push_back(input.at(q));
+                    par_count++;
+                }
+                else if(input.at(q) == ")")
+                {
+                    par_count--;
+                    if(par_count != 0)
+                    {
+                        temp_vec.push_back(input.at(q));
+                    }
+                }
+                else
+                {
+                    temp_vec.push_back(input.at(q));
+                }
+                
+                q++;
+            }
+            parse(temp_vec, treed_commands);
+            //cout << q << endl;
+            if(q < input.size() && (input.at(q) == "&&" || input.at(q) == "||" || input.at(q) == ";"))
+            {
+                connectors.push_back(input.at(q)); 
+            }
+            i = q;
         }
         else
         {
+            //cout << "pushed on" << endl;
             temp_vector.push_back(temp);
         }
         
@@ -111,8 +158,9 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
         
         if(i == input.size())
         {
+            //cout << "new object" << endl;
             Command* new_command = new Command(temp_vector);
-            treed_commands.push_back(new_command);
+            temp_objects.push_back(new_command);
             temp_vector.clear();
         }
     }
@@ -121,61 +169,104 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
     // this is when we make the objects into a tree?
     //------------------------------------------------
     
-    // special case for first one
-    
-    if(connectors.size() == 0)
-    {
+    if(connectors.size() == 0)                        // if there is no connectors then there is only one Rshell object
+    {                                                 // execute that sucker
+        if(temp_objects.size() != 0)
+        {
+            treed_commands.push_back(temp_objects.at(temp_objects.size() - 1));
+        }
+
         return;
     }
     
+    //cout << "here" << endl;
+    
+    if(temp_objects.size() == 0)
+    {
+        for(unsigned r = 0; r < treed_commands.size(); r++)
+        {
+            temp_objects.push_back(treed_commands.at(r));
+        }
+    }
+    // special case for first connector, because it should get the 1st two Rshell objects
+    // the following should get the first Rshell object and the last
+    
+    //cout << connectors.size() << endl;
+    
     if(connectors.at(0) == "&&")
     {
-        And* new_and = new And(treed_commands.at(0), treed_commands.at(1));
-        treed_commands.erase(treed_commands.begin());
-        treed_commands.erase(treed_commands.begin());
+        And* new_and = new And(temp_objects.at(0), temp_objects.at(1));
+        temp_objects.erase(temp_objects.begin());
+        temp_objects.erase(temp_objects.begin());
         connectors.erase(connectors.begin());
-        treed_commands.push_back(new_and);
+        temp_objects.push_back(new_and);
     }
     else if(connectors.at(0) == "||")
     {
-        Or* new_or = new Or(treed_commands.at(0), treed_commands.at(1));
-        treed_commands.erase(treed_commands.begin());
-        treed_commands.erase(treed_commands.begin());
+        Or* new_or = new Or(temp_objects.at(0), temp_objects.at(1));
+        temp_objects.erase(temp_objects.begin());
+        temp_objects.erase(temp_objects.begin());
         connectors.erase(connectors.begin());
-        treed_commands.push_back(new_or);
+        temp_objects.push_back(new_or);
     }
     else if(connectors.at(0) == ";")
     {
-        Semicolon* new_semi = new Semicolon(treed_commands.at(0), treed_commands.at(1));
-        treed_commands.erase(treed_commands.begin());
-        treed_commands.erase(treed_commands.begin());
+        Semicolon* new_semi = new Semicolon(temp_objects.at(0), temp_objects.at(1));
+        temp_objects.erase(temp_objects.begin());
+        temp_objects.erase(temp_objects.begin());
         connectors.erase(connectors.begin());
-        treed_commands.push_back(new_semi);
+        temp_objects.push_back(new_semi);
     }
     
-    
-    while(!connectors.empty())
-    {
-        int j = treed_commands.size() - 1;
+    while(!connectors.empty())                                         //makes commands out of the connectors and the
+    {                                                                  //Rshell objects specifically first and last
+        int j = temp_objects.size() - 1;
         
         if(connectors.at(0) == "&&")
         {
-            And* new_and = new And(treed_commands.at(j), treed_commands.at(0));
-            treed_commands.push_back(new_and);
+            And* new_and = new And(temp_objects.at(j), temp_objects.at(0));
+            temp_objects.push_back(new_and);
         }
         else if(connectors.at(0) == "||")
         {
-            Or* new_or = new Or(treed_commands.at(j), treed_commands.at(0));
-            treed_commands.push_back(new_or);
+            Or* new_or = new Or(temp_objects.at(j), temp_objects.at(0));
+            temp_objects.push_back(new_or);
         }
         else if(connectors.at(0) == ";")
         {
-            Semicolon* new_semi = new Semicolon(treed_commands.at(j), treed_commands.at(0));
-            treed_commands.push_back(new_semi);
+            Semicolon* new_semi = new Semicolon(temp_objects.at(j), temp_objects.at(0));
+            temp_objects.push_back(new_semi);
         }
         
-        treed_commands.erase(treed_commands.begin());
+        temp_objects.erase(temp_objects.begin());
         connectors.erase(connectors.begin());
     }
+    
+    treed_commands.push_back(temp_objects.at(temp_objects.size() - 1)); //adding your final product back onto the tree
+}
 
+bool even_parentheses(const vector <string> input_tokens)
+{
+    //this function essentially just checks is there is an even number of parantheses
+    //thats is
+    int left_paren = 0, right_paren = 0;
+    
+    for(unsigned i = 0; i < input_tokens.size(); i++)
+    {
+        if(input_tokens.at(i) == "(")
+        {
+            left_paren++;
+        }
+        else if(input_tokens.at(i) == ")")
+        {
+            right_paren++;
+        }
+    }
+    
+    if(left_paren == right_paren)
+    {
+        return true;
+    }
+    
+    return false;
 }
