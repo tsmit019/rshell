@@ -32,4 +32,3 @@ not able to resolve. Similarly, any connector directly after a closing parenthes
 this by the next release. 
 
 Similarly, commands with connectors right after each other will through a similar out of range error. E.g `echo a && ||` will give you out of range.
-
