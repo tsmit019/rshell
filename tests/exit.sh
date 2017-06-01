@@ -10,6 +10,7 @@ $RSHELL << EOF
 ls -al
 echo hello world && exit
 ech hello wrolsjdsa || exit
-exit
-EOFs
+exit && echo hello
+(echo a && echo b) && exit
+EOF
 
