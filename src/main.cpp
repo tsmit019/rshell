@@ -15,6 +15,7 @@
 #include "command.h"
 #include "connectors.h"
 #include "redirect.h"
+#include "pipe.h"
 
 using namespace std;
 
@@ -118,16 +119,7 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
         }
         else if(temp == ">")
         {
-            Rshell* new_command;
-            if(temp_vector.empty())
-            {
-                new_command = treed_commands.at( treed_commands.size() - 1);
-            }
-            else
-            {
-                new_command = new Command(temp_vector);
-            }
-            
+            Rshell* new_command = new Command(temp_vector);
             i++;
             string temp_filename = input.at(i);
         
@@ -159,6 +151,21 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
             new_redirect -> set_string_command(temp_command);
             temp_objects.push_back(new_redirect);
             temp_vector.clear();
+        }
+        else if(temp == "|")
+        {
+            temp_vector.push_back(temp);
+            i++;
+            while(i < input.size())
+            {
+                temp = input.at(i);
+                temp_vector.push_back(temp);
+                i++;
+            }
+            Rshell* new_pipe = new Pipe(temp_vector);
+            temp_objects.push_back(new_pipe);
+            temp_vector.clear();
+            i--;
         }
         else if(temp == "(")
         {
