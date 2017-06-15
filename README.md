@@ -28,7 +28,7 @@ From here you can chose any of the `.sh` and run them. Make sure they are execut
 ## Bugs
 Input redirection and output redirection work most of the time except for when they are the first set of commands (e.g. `cat < test.txt` will through an out of range. I have looked
 for the reason for a while and have not been able to identify why). But, if you use the redirects after a connector (e.g. `echo hhallllllllu && cat < test` or `ls -al; echo why does this not work > sad.txt`)
-then it works perfectly fine. I don't quite know.
+then it works perfectly fine. Same for piping. I don't quite know.
 
 Nested redirects dont quite work as intended e.g. `cat < test.txt > test_clone.txt` will not write to test_clone.txt but just execute the `cat < test.txt`.
 

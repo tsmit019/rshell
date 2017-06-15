@@ -32,13 +32,15 @@ void Pipe::execute(int &status, bool &exit_now)
     }
     return;
     
-    // const int READ_FD = 0;
-    // const int WRITE_FD = 1;
+    const int READ_FD = 0;
+    const int WRITE_FD = 1;
     unsigned i = 0;
-    // int fd[2];
-    // int save_stdin = dup(0);
-    // int save_stdout = dup(1);
+    int fd[2];
+    int save_stdin = dup(0);
+    int save_stdout = dup(1);
     vector <string> temp_vector;
+    
+    pipe(fd);
     
     while(i < list_o_pipes.size())
     {
@@ -62,6 +64,7 @@ void Pipe::execute(int &status, bool &exit_now)
             
             if(pid == 0)
             {
+                dup2(fd[1],WRITE_FD);
                 execvp(command[0], command);
                 perror("Error: execvp");
                 exit(1);
@@ -69,6 +72,7 @@ void Pipe::execute(int &status, bool &exit_now)
             }
             else if (pid > 0)
             {
+                
                 waitpid(pid, &status_pid, 0);
             }
             else
