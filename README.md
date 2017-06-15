@@ -11,14 +11,14 @@ note also that this is white space sensetive `[-e /home/user/]` will not work.
 ## How to Run
 - `$ git clone https://github.com/tsmit019/rshell.git`
 - `$ cd rshell`
-- `$ git checkout hw2`
+- `$ git checkout hw4`
 - `$ make`
 - `$ bin/rshell`
 
 ## If you want to run test
 - `$ git clone https://github.com/tsmit019/rshell.git`
 - `$ cd rshell`
-- `$ git checkout hw3`
+- `$ git checkout hw4`
 - `$ make`
 - `$ cd tests`
 
@@ -26,6 +26,12 @@ From here you can chose any of the `.sh` and run them. Make sure they are execut
 
 
 ## Bugs
+Input redirection and output redirection work most of the time except for when they are the first set of commands (e.g. `cat < test.txt` will through an out of range. I have looked
+for the reason for a while and have not been able to identify why). But, if you use the redirects after a connector (e.g. `echo hhallllllllu && cat < test` or `ls -al; echo why does this not work > sad.txt`)
+then it works perfectly fine. I don't quite know.
+
+Nested redirects dont quite work as intended e.g. `cat < test.txt > test_clone.txt` will not write to test_clone.txt but just execute the `cat < test.txt`.
+
 If you give a command that is parenthese, connector, then command (e.g. `(echo a && echo b) || echo c`) you get a out of range error that I was 
 not able to resolve. Similarly, any connector directly after a closing parenthese will cause this behavior and I am unsure why. I will try and fix 
 this by the next release. 
