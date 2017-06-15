@@ -14,6 +14,8 @@
 #include "master_class.h"
 #include "command.h"
 #include "connectors.h"
+#include "redirect.h"
+#include "pipe.h"
 
 using namespace std;
 
@@ -44,9 +46,12 @@ int main()
         else                                                    //if even or no parentheses execute the command(s)
         {
             parse(commands,exe_commands);
+            // cout << "Size: " << exe_commands.size() - 1 << endl;
+            //cout << "exe_commands size: " << exe_commands.size() << endl;
+            exe_commands.at(exe_commands.size() - 1)->execute(status, exit_now);
             
-            exe_commands.at(exe_commands.size() - 1) -> execute(status, exit_now);
             status = 0;
+            
             
             delete exe_commands.at(exe_commands.size() - 1);
             exe_commands.clear();
@@ -90,6 +95,7 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
     {                                                        // takes all the connectors and puts them into a vector of strings to be converted into a tree later
         temp = input.at(i);
         
+
         if(temp == "&&")                                     //checks for a && so it can start a new vector 
         {
             connectors.push_back(temp);
@@ -110,6 +116,56 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
             Command* new_command = new Command(temp_vector);
             temp_objects.push_back(new_command);
             temp_vector.clear();
+        }
+        else if(temp == ">")
+        {
+            Rshell* new_command = new Command(temp_vector);
+            i++;
+            string temp_filename = input.at(i);
+        
+            Redirect* new_redirect = new Output_overwrite(new_command, temp_filename);
+            temp_objects.push_back(new_redirect);
+            temp_vector.clear();
+            
+            //cout << "here 1" << endl;
+        }
+        else if(temp == ">>")
+        {
+            //cout << "Finding something" << endl;
+            Command* new_command = new Command(temp_vector);
+            i++;
+            string temp_filename = input.at(i);
+            //cout << temp_filename << endl;
+            Redirect* new_redirect = new Output_append(new_command, temp_filename);
+            temp_objects.push_back(new_redirect);
+            temp_vector.clear();
+            
+            //cout << "here 1" << endl;
+        }
+        else if(temp == "<")
+        {
+            string temp_command = input.at(i - 1);
+            i++;
+            string temp_filename = input.at(i);
+            Input_redirect* new_redirect = new Input_redirect(NULL, temp_filename);
+            new_redirect -> set_string_command(temp_command);
+            temp_objects.push_back(new_redirect);
+            temp_vector.clear();
+        }
+        else if(temp == "|")
+        {
+            temp_vector.push_back(temp);
+            i++;
+            while(i < input.size())
+            {
+                temp = input.at(i);
+                temp_vector.push_back(temp);
+                i++;
+            }
+            Rshell* new_pipe = new Pipe(temp_vector);
+            temp_objects.push_back(new_pipe);
+            temp_vector.clear();
+            i--;
         }
         else if(temp == "(")
         {
@@ -175,11 +231,8 @@ void parse (const vector <string> &input, vector<Rshell*> &treed_commands)
         {
             treed_commands.push_back(temp_objects.at(temp_objects.size() - 1));
         }
-
         return;
     }
-    
-    //cout << "here" << endl;
     
     if(temp_objects.size() == 0)
     {
