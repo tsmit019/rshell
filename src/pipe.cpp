@@ -32,12 +32,12 @@ void Pipe::execute(int &status, bool &exit_now)
     }
     return;
     
-    const int READ_FD = 0;
-    const int WRITE_FD = 1;
-    unsigned i = 0;
-    int fd[2];
-    int save_stdin = dup(0);
-    int save_stdout = dup(1);
+   //const int READ_FD = 0;
+   const int WRITE_FD = 1;
+   unsigned i = 0;
+   int fd[2];
+   // int save_stdin = dup(0);
+   // int save_stdout = dup(1);
     vector <string> temp_vector;
     
     pipe(fd);
